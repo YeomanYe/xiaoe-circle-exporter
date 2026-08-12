@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildHtml, buildMarkdown, sanitizeFilename } from "../src/export-format.js";
+import {
+  buildArchiveFilename,
+  buildHtml,
+  buildMarkdown,
+  sanitizeFilename,
+} from "../src/export-format.js";
 
 const fixture = {
   exportedAt: "2026-08-12T10:00:00.000Z",
@@ -31,6 +36,20 @@ const fixture = {
 
 test("sanitizes archive filenames", () => {
   assert.equal(sanitizeFilename('a/b:c*?"<d>|'), "a_b_c____d__");
+});
+
+test("uses the post creation time in archive filenames", () => {
+  assert.equal(
+    buildArchiveFilename(fixture),
+    "请帮忙看下 _投资价值_-2026-08-10-12-21-50.zip",
+  );
+});
+
+test("falls back to the export time when the post creation time is missing", () => {
+  assert.equal(
+    buildArchiveFilename({ ...fixture, post: { ...fixture.post, createdAt: "" } }),
+    "请帮忙看下 _投资价值_-2026-08-12-10-00-00.zip",
+  );
 });
 
 test("renders local attachment and media paths and escapes untrusted HTML", () => {

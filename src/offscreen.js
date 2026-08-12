@@ -1,5 +1,6 @@
 import { strToU8, zipSync } from "fflate";
 import {
+  buildArchiveFilename,
   buildArchiveReadme,
   buildHtml,
   buildMarkdown,
@@ -81,8 +82,7 @@ async function buildAndDownload(data, jobId) {
   sendProgress(jobId, { state: "working", message: "正在生成 ZIP 压缩包…" });
   const zipped = zipSync(entries, { level: 0 });
   const blobUrl = URL.createObjectURL(new Blob([zipped], { type: "application/zip" }));
-  const timestamp = data.exportedAt.replace(/[:.]/g, "-").slice(0, 19);
-  const filename = `${sanitizeFilename(data.post.title)}-${timestamp}.zip`;
+  const filename = buildArchiveFilename(data);
   setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
   return { blobUrl, filename, resourceCount: data.resources.length };
 }

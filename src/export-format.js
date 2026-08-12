@@ -10,6 +10,20 @@ export function sanitizeFilename(value, fallback = "鹅圈子帖子") {
   return (normalized || fallback).slice(0, 100);
 }
 
+export function buildArchiveFilename(data) {
+  const sourceTime = data.post?.createdAt || data.exportedAt;
+  const timestamp = String(sourceTime || "")
+    .trim()
+    .replace(/[T\s]+/g, "-")
+    .replace(/[:.]/g, "-")
+    .replace(/[^a-z0-9_-]+/gi, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 19);
+  const title = sanitizeFilename(data.post?.title);
+  return `${title}-${timestamp || "时间未知"}.zip`;
+}
+
 export function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")

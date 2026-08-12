@@ -712,6 +712,12 @@
     const normalized = String(value || "").normalize("NFKC").replace(ILLEGAL_FILENAME, "_").replace(/\s+/g, " ").replace(/[. ]+$/g, "").trim();
     return (normalized || fallback).slice(0, 100);
   }
+  function buildArchiveFilename(data) {
+    const sourceTime = data.post?.createdAt || data.exportedAt;
+    const timestamp = String(sourceTime || "").trim().replace(/[T\s]+/g, "-").replace(/[:.]/g, "-").replace(/[^a-z0-9_-]+/gi, "-").replace(/-+/g, "-").replace(/^-|-$/g, "").slice(0, 19);
+    const title = sanitizeFilename(data.post?.title);
+    return `${title}-${timestamp || "\u65F6\u95F4\u672A\u77E5"}.zip`;
+  }
   function escapeHtml(value) {
     return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
   }
@@ -922,8 +928,7 @@ ${indent}  `)}`);
     sendProgress(jobId, { state: "working", message: "\u6B63\u5728\u751F\u6210 ZIP \u538B\u7F29\u5305\u2026" });
     const zipped = zipSync(entries, { level: 0 });
     const blobUrl = URL.createObjectURL(new Blob([zipped], { type: "application/zip" }));
-    const timestamp = data.exportedAt.replace(/[:.]/g, "-").slice(0, 19);
-    const filename = `${sanitizeFilename(data.post.title)}-${timestamp}.zip`;
+    const filename = buildArchiveFilename(data);
     setTimeout(() => URL.revokeObjectURL(blobUrl), 6e4);
     return { blobUrl, filename, resourceCount: data.resources.length };
   }
