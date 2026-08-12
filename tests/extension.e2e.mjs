@@ -100,8 +100,15 @@ try {
         status: 200,
         contentType: "text/html; charset=utf-8",
         body: `<!doctype html><html><head><title>插件端到端测试 - 测试社群</title></head><body>
+          <style>
+            .feed-item-wrapper { width: 640px; height: 260px; }
+            .feed-base-wrapper { width: 100%; height: 100%; }
+            .interactive-bar { position: absolute; right: 16px; bottom: 16px; }
+            .to-feed-detail { display: block; width: 88px; height: 30px; }
+          </style>
           <div class="feed-item-wrapper"><div class="feed-base-wrapper">
-            <p>这是测试正文。</p><div class="interactive-bar"></div>
+            <p>这是测试正文。</p>
+            <div class="interactive-bar"><a class="to-feed-detail">查看详情</a></div>
           </div></div>
         </body></html>`,
       });
@@ -124,6 +131,13 @@ try {
   );
   const exportButton = page.getByRole("button", { name: "打包下载" });
   await exportButton.waitFor({ state: "visible" });
+  const cardBox = await page.locator(".feed-item-wrapper").boundingBox();
+  const buttonBox = await exportButton.boundingBox();
+  const detailBox = await page.locator(".to-feed-detail").boundingBox();
+  assert.ok(cardBox && buttonBox && detailBox);
+  assert.ok(buttonBox.y - cardBox.y <= 20, "导出按钮应位于帖子卡片顶部");
+  assert.ok(cardBox.x + cardBox.width - (buttonBox.x + buttonBox.width) <= 20, "导出按钮应靠右");
+  assert.equal(rectanglesOverlap(buttonBox, detailBox), false, "导出按钮不得遮挡查看详情");
   await exportButton.click();
   const toast = page.locator("#xiaoe-circle-export-toast");
   await toast.waitFor({ state: "visible" });
@@ -167,4 +181,13 @@ async function waitForZip(directory) {
     await new Promise((resolve) => setTimeout(resolve, 200));
   }
   throw new Error("Timed out waiting for ZIP download");
+}
+
+function rectanglesOverlap(first, second) {
+  return !(
+    first.x + first.width <= second.x ||
+    second.x + second.width <= first.x ||
+    first.y + first.height <= second.y ||
+    second.y + second.height <= first.y
+  );
 }

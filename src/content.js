@@ -1,4 +1,5 @@
 const BUTTON_CLASS = "xiaoe-circle-export-button";
+const HOST_CLASS = "xiaoe-circle-export-host";
 const STYLE_ID = "xiaoe-circle-export-style";
 let scanScheduled = false;
 
@@ -42,6 +43,7 @@ function scanPage() {
 
 function attachButton(card, detailUrl) {
   if (card.querySelector(`:scope .${BUTTON_CLASS}`)) return;
+  card.classList.add(HOST_CLASS);
   const button = document.createElement("button");
   button.type = "button";
   button.className = BUTTON_CLASS;
@@ -66,9 +68,7 @@ function attachButton(card, detailUrl) {
     }
   });
 
-  const actionBar = card.querySelector(".interactive-bar");
-  if (actionBar) actionBar.append(button);
-  else card.append(button);
+  card.append(button);
 }
 
 function showToast(message, state = "working") {
@@ -94,9 +94,15 @@ function installStyles() {
   const style = document.createElement("style");
   style.id = STYLE_ID;
   style.textContent = `
+    .${HOST_CLASS} {
+      position: relative !important;
+    }
     .${BUTTON_CLASS} {
+      position: absolute;
+      z-index: 3;
+      top: 16px;
+      right: 16px;
       appearance: none;
-      margin-left: auto;
       padding: 6px 12px;
       border: 1px solid #3478f6;
       border-radius: 999px;
