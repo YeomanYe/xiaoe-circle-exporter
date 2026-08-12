@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "鹅圈子帖子打包器",
+  "version": "0.1.0",
+  "description": "把鹅圈子帖子的正文、附件、评论和评论媒体完整打包为 ZIP。",
+  "permissions": [
+    "activeTab",
+    "downloads",
+    "offscreen",
+    "scripting",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://quanzi.xiaoe-tech.com/*",
+    "https://*.xiaoe-tech.com/*",
+    "https://*.xiaoeknow.com/*",
+    "https://*.myqcloud.com/*",
+    "http://*.myqcloud.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "打包鹅圈子帖子"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://quanzi.xiaoe-tech.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

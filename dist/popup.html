@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>鹅圈子帖子打包器</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main>
+      <div class="brand">
+        <span class="brand__icon" aria-hidden="true">鹅</span>
+        <div>
+          <h1>帖子打包器</h1>
+          <p>正文、附件、完整评论一次下载</p>
+        </div>
+      </div>
+
+      <section class="status-card" aria-live="polite">
+        <span id="status-dot" class="status-dot"></span>
+        <p id="status">正在识别当前页面…</p>
+      </section>
+
+      <button id="export" type="button" disabled>打包当前帖子</button>
+      <p id="hint" class="hint"></p>
+
+      <footer>所有数据仅在本机处理，不会上传。</footer>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>
