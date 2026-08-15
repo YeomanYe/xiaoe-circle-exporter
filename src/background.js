@@ -2,29 +2,113 @@ import { collectPostFromPage } from "./page-collector.js";
 
 const jobs = new Map();
 const DETAIL_PATH = /\/feed_detail(?:$|[/?])/;
+const SUPPORTED_ACTION_ORIGIN = "https://quanzi.xiaoe-tech.com";
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message?.type === "XIAOE_ARCHIVE_PROGRESS") {
-    const job = jobs.get(message.jobId);
-    if (job) broadcastProgress(job, message);
-    return undefined;
+export const ACTION_ICON_PATHS = {
+  disabled: {
+    16: "icons/icon-disabled-16.png",
+    32: "icons/icon-disabled-32.png",
+    48: "icons/icon-disabled-48.png",
+    128: "icons/icon-disabled-128.png",
+  },
+  enabled: {
+    16: "icons/icon-enabled-16.png",
+    32: "icons/icon-enabled-32.png",
+    48: "icons/icon-enabled-48.png",
+    128: "icons/icon-enabled-128.png",
+  },
+};
+
+export function isSupportedActionUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.origin === SUPPORTED_ACTION_ORIGIN;
+  } catch {
+    return false;
   }
+}
 
-  if (message?.type !== "XIAOE_EXPORT_REQUEST") return undefined;
+export function getActionIconPathsForUrl(value) {
+  return isSupportedActionUrl(value) ? ACTION_ICON_PATHS.enabled : ACTION_ICON_PATHS.disabled;
+}
 
-  runExport(message, sender)
-    .then((result) => sendResponse({ ok: true, ...result }))
-    .catch((error) => {
-      const sourceTabId = sender.tab?.id ?? message.tabId;
-      notifyTab(sourceTabId, {
-        type: "XIAOE_EXPORT_PROGRESS",
-        state: "error",
-        message: error instanceof Error ? error.message : String(error),
+export function getActionTitleForUrl(value) {
+  return isSupportedActionUrl(value) ? "打包鹅圈子帖子" : "请先打开鹅圈子页面";
+}
+
+if (globalThis.chrome?.runtime?.onMessage) {
+  registerMessageHandlers();
+  registerActionIconUpdater();
+}
+
+function registerMessageHandlers() {
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message?.type === "XIAOE_ARCHIVE_PROGRESS") {
+      const job = jobs.get(message.jobId);
+      if (job) broadcastProgress(job, message);
+      return undefined;
+    }
+
+    if (message?.type !== "XIAOE_EXPORT_REQUEST") return undefined;
+
+    runExport(message, sender)
+      .then((result) => sendResponse({ ok: true, ...result }))
+      .catch((error) => {
+        const sourceTabId = sender.tab?.id ?? message.tabId;
+        notifyTab(sourceTabId, {
+          type: "XIAOE_EXPORT_PROGRESS",
+          state: "error",
+          message: error instanceof Error ? error.message : String(error),
+        });
+        sendResponse({ ok: false, error: error instanceof Error ? error.message : String(error) });
       });
-      sendResponse({ ok: false, error: error instanceof Error ? error.message : String(error) });
+    return true;
+  });
+}
+
+function registerActionIconUpdater() {
+  chrome.tabs.onActivated.addListener(({ tabId }) => {
+    updateActionForTab(tabId);
+  });
+
+  chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    if (changeInfo.url || changeInfo.status === "complete") {
+      updateActionForTab(tabId, tab.url);
+    }
+  });
+
+  chrome.runtime.onInstalled?.addListener(updateAllActionIcons);
+  chrome.runtime.onStartup?.addListener(updateAllActionIcons);
+  updateAllActionIcons();
+}
+
+async function updateAllActionIcons() {
+  const tabs = await chrome.tabs.query({}).catch(() => []);
+  await Promise.all(tabs.map((tab) => updateActionForTab(tab.id, tab.url)));
+}
+
+async function updateActionForTab(tabId, knownUrl) {
+  try {
+    if (!Number.isInteger(tabId)) return;
+
+    let url = knownUrl;
+    if (typeof url !== "string") {
+      const tab = await chrome.tabs.get(tabId).catch(() => null);
+      url = tab?.url || "";
+    }
+
+    await chrome.action.setIcon({
+      tabId,
+      path: getActionIconPathsForUrl(url),
     });
-  return true;
-});
+    await chrome.action.setTitle({
+      tabId,
+      title: getActionTitleForUrl(url),
+    });
+  } catch {
+    // Tabs can disappear while Chrome is dispatching tab events.
+  }
+}
 
 async function runExport(message, sender) {
   const sourceTabId = sender.tab?.id ?? message.tabId;

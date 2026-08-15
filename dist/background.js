@@ -230,24 +230,95 @@
   // src/background.js
   var jobs = /* @__PURE__ */ new Map();
   var DETAIL_PATH = /\/feed_detail(?:$|[/?])/;
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message?.type === "XIAOE_ARCHIVE_PROGRESS") {
-      const job = jobs.get(message.jobId);
-      if (job) broadcastProgress(job, message);
-      return void 0;
+  var SUPPORTED_ACTION_ORIGIN = "https://quanzi.xiaoe-tech.com";
+  var ACTION_ICON_PATHS = {
+    disabled: {
+      16: "icons/icon-disabled-16.png",
+      32: "icons/icon-disabled-32.png",
+      48: "icons/icon-disabled-48.png",
+      128: "icons/icon-disabled-128.png"
+    },
+    enabled: {
+      16: "icons/icon-enabled-16.png",
+      32: "icons/icon-enabled-32.png",
+      48: "icons/icon-enabled-48.png",
+      128: "icons/icon-enabled-128.png"
     }
-    if (message?.type !== "XIAOE_EXPORT_REQUEST") return void 0;
-    runExport(message, sender).then((result) => sendResponse({ ok: true, ...result })).catch((error) => {
-      const sourceTabId = sender.tab?.id ?? message.tabId;
-      notifyTab(sourceTabId, {
-        type: "XIAOE_EXPORT_PROGRESS",
-        state: "error",
-        message: error instanceof Error ? error.message : String(error)
+  };
+  function isSupportedActionUrl(value) {
+    try {
+      const url = new URL(value);
+      return url.origin === SUPPORTED_ACTION_ORIGIN;
+    } catch {
+      return false;
+    }
+  }
+  function getActionIconPathsForUrl(value) {
+    return isSupportedActionUrl(value) ? ACTION_ICON_PATHS.enabled : ACTION_ICON_PATHS.disabled;
+  }
+  function getActionTitleForUrl(value) {
+    return isSupportedActionUrl(value) ? "\u6253\u5305\u9E45\u5708\u5B50\u5E16\u5B50" : "\u8BF7\u5148\u6253\u5F00\u9E45\u5708\u5B50\u9875\u9762";
+  }
+  if (globalThis.chrome?.runtime?.onMessage) {
+    registerMessageHandlers();
+    registerActionIconUpdater();
+  }
+  function registerMessageHandlers() {
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      if (message?.type === "XIAOE_ARCHIVE_PROGRESS") {
+        const job = jobs.get(message.jobId);
+        if (job) broadcastProgress(job, message);
+        return void 0;
+      }
+      if (message?.type !== "XIAOE_EXPORT_REQUEST") return void 0;
+      runExport(message, sender).then((result) => sendResponse({ ok: true, ...result })).catch((error) => {
+        const sourceTabId = sender.tab?.id ?? message.tabId;
+        notifyTab(sourceTabId, {
+          type: "XIAOE_EXPORT_PROGRESS",
+          state: "error",
+          message: error instanceof Error ? error.message : String(error)
+        });
+        sendResponse({ ok: false, error: error instanceof Error ? error.message : String(error) });
       });
-      sendResponse({ ok: false, error: error instanceof Error ? error.message : String(error) });
+      return true;
     });
-    return true;
-  });
+  }
+  function registerActionIconUpdater() {
+    chrome.tabs.onActivated.addListener(({ tabId }) => {
+      updateActionForTab(tabId);
+    });
+    chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+      if (changeInfo.url || changeInfo.status === "complete") {
+        updateActionForTab(tabId, tab.url);
+      }
+    });
+    chrome.runtime.onInstalled?.addListener(updateAllActionIcons);
+    chrome.runtime.onStartup?.addListener(updateAllActionIcons);
+    updateAllActionIcons();
+  }
+  async function updateAllActionIcons() {
+    const tabs = await chrome.tabs.query({}).catch(() => []);
+    await Promise.all(tabs.map((tab) => updateActionForTab(tab.id, tab.url)));
+  }
+  async function updateActionForTab(tabId, knownUrl) {
+    try {
+      if (!Number.isInteger(tabId)) return;
+      let url = knownUrl;
+      if (typeof url !== "string") {
+        const tab = await chrome.tabs.get(tabId).catch(() => null);
+        url = tab?.url || "";
+      }
+      await chrome.action.setIcon({
+        tabId,
+        path: getActionIconPathsForUrl(url)
+      });
+      await chrome.action.setTitle({
+        tabId,
+        title: getActionTitleForUrl(url)
+      });
+    } catch {
+    }
+  }
   async function runExport(message, sender) {
     const sourceTabId = sender.tab?.id ?? message.tabId;
     if (!Number.isInteger(sourceTabId)) throw new Error("\u65E0\u6CD5\u8BC6\u522B\u5F53\u524D\u6807\u7B7E\u9875\u3002");

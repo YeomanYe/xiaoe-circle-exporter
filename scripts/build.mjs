@@ -30,6 +30,7 @@ await copyFile(resolve(root, "static/manifest.json"), resolve(dist, "manifest.js
 await copyFile(resolve(root, "static/popup.html"), resolve(dist, "popup.html"));
 await copyFile(resolve(root, "static/popup.css"), resolve(dist, "popup.css"));
 await copyFile(resolve(root, "static/offscreen.html"), resolve(dist, "offscreen.html"));
+await cp(resolve(root, "static/icons"), resolve(dist, "icons"), { recursive: true });
 await cp(resolve(root, "LICENSE"), resolve(dist, "LICENSE"));
 
 console.log(`Built extension at ${dist}`);
