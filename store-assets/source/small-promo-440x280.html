@@ -1,13 +1,251 @@
-<!doctype html><html><head><meta charset="utf-8"><style>
-    * { box-sizing: border-box; }
-    html, body { width: 440px; height: 280px; margin: 0; overflow: hidden; }
-    body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif; color: #172033; background: #f5f7fb; }
-    .blue { color: #3478f6; }
-  </style><style>
-    body { background: linear-gradient(135deg, #3478f6 0%, #6658e8 58%, #18a66a 130%); }
-    .wrap { position: relative; width: 440px; height: 280px; padding: 34px; display: flex; align-items: center; gap: 24px; color: white; }
-    img { width: 112px; height: 112px; border-radius: 22px; box-shadow: 0 22px 50px rgba(0,0,0,.18); flex: 0 0 auto; }
-    h1 { margin: 0; font-size: 38px; line-height: 1.08; letter-spacing: 0; }
-    p { margin: 12px 0 0; color: rgba(255,255,255,.86); font-size: 16px; line-height: 1.45; max-width: 230px; }
-    .ring { position: absolute; inset: auto -72px -88px auto; width: 220px; height: 220px; border-radius: 50%; border: 34px solid rgba(255,255,255,.13); }
-  </style></head><body><main class="wrap"><img src="file:///Users/ym/Documents/projects/xiaoe-circle-exporter/static/icons/icon-enabled-128.png" alt=""><section><h1>小鹅通助手</h1><p>鹅圈子帖子、附件与完整评论一键打包归档。</p></section><div class="ring"></div></main></body></html>
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=440, initial-scale=1" />
+    <title>小鹅通助手 Small Promo</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 440px;
+        height: 280px;
+        margin: 0;
+        overflow: hidden;
+      }
+
+      body {
+        color: #172033;
+        background: #f7fbff;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", "PingFang SC", sans-serif;
+      }
+
+      .canvas {
+        position: relative;
+        width: 440px;
+        height: 280px;
+        padding: 26px 24px;
+        background:
+          linear-gradient(112deg, rgba(52, 120, 246, 0.12) 0 45%, transparent 45%),
+          linear-gradient(160deg, transparent 0 70%, rgba(24, 166, 106, 0.16) 70%),
+          #f7fbff;
+      }
+
+      .brand {
+        position: absolute;
+        top: 28px;
+        left: 26px;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .brand img {
+        width: 54px;
+        height: 54px;
+        border-radius: 16px;
+        box-shadow: 0 12px 28px rgba(52, 120, 246, 0.24);
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: 25px;
+        line-height: 1.05;
+        letter-spacing: 0;
+      }
+
+      .copy {
+        position: absolute;
+        left: 28px;
+        bottom: 28px;
+        z-index: 2;
+        width: 182px;
+      }
+
+      .copy h2 {
+        margin: 0;
+        color: #14213d;
+        font-size: 27px;
+        line-height: 1.14;
+        letter-spacing: 0;
+      }
+
+      .copy p {
+        margin: 10px 0 0;
+        color: #536072;
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .preview {
+        position: absolute;
+        right: 22px;
+        bottom: 24px;
+        width: 206px;
+        height: 158px;
+        overflow: hidden;
+        border: 1px solid #dbe4f0;
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow: 0 18px 36px rgba(23, 32, 51, 0.16);
+      }
+
+      .bar {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        height: 22px;
+        padding: 0 9px;
+        border-bottom: 1px solid #e8edf5;
+        background: #fbfdff;
+      }
+
+      .dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #cad4e5;
+      }
+
+      .url {
+        width: 90px;
+        height: 10px;
+        margin-left: 5px;
+        border-radius: 999px;
+        background: #edf3fb;
+      }
+
+      .feed {
+        position: relative;
+        height: 136px;
+        padding: 16px 15px;
+        background: #f8fbff;
+      }
+
+      .post {
+        height: 90px;
+        padding: 12px;
+        border: 1px solid #e1e8f2;
+        border-radius: 13px;
+        background: #ffffff;
+      }
+
+      .avatar {
+        width: 19px;
+        height: 19px;
+        border-radius: 50%;
+        background: linear-gradient(145deg, #3478f6, #6658e8);
+      }
+
+      .line {
+        height: 7px;
+        border-radius: 999px;
+        background: #d7e0ef;
+      }
+
+      .line.one {
+        position: absolute;
+        top: 30px;
+        left: 46px;
+        width: 62px;
+      }
+
+      .line.two {
+        width: 122px;
+        margin-top: 14px;
+      }
+
+      .line.three {
+        width: 92px;
+        margin-top: 8px;
+      }
+
+      .export {
+        position: absolute;
+        top: 36px;
+        right: 24px;
+        height: 22px;
+        padding: 0 10px;
+        border-radius: 999px;
+        color: #ffffff;
+        background: #3478f6;
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 22px;
+      }
+
+      .zip {
+        position: absolute;
+        right: 17px;
+        bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        height: 24px;
+        padding: 0 9px;
+        border-radius: 8px;
+        color: #0f7b55;
+        background: #e9f8f2;
+        font-size: 10px;
+        font-weight: 800;
+      }
+
+      .zip::before {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #18a66a;
+        content: "";
+      }
+
+      .corner {
+        position: absolute;
+        right: 28px;
+        top: 28px;
+        width: 54px;
+        height: 12px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #3478f6, #18a66a);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="canvas">
+      <div class="corner" aria-hidden="true"></div>
+      <section class="brand" aria-label="小鹅通助手">
+        <img src="../../static/icons/icon-enabled-128.png" alt="" />
+        <h1>小鹅通助手</h1>
+      </section>
+
+      <section class="copy">
+        <h2>一键打包鹅圈子帖子</h2>
+        <p>正文、附件、评论和媒体本地归档。</p>
+      </section>
+
+      <section class="preview" aria-label="扩展界面预览">
+        <div class="bar">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="url"></span>
+        </div>
+        <div class="feed">
+          <article class="post">
+            <div class="avatar"></div>
+            <span class="line one"></span>
+            <div class="line two"></div>
+            <div class="line three"></div>
+          </article>
+          <div class="export">打包下载</div>
+          <div class="zip">ZIP</div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

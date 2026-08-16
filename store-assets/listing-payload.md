@@ -33,7 +33,8 @@
 ## Microsoft Edge Add-ons Assets
 
 - Extension logo 300x300: `store-assets/edge/logo-300x300.png`
-- Screenshot 1280x800: `store-assets/common/screenshot-1280x800.png`
+- Icon 128x128: `store-assets/edge/icon-128x128.png`
+- Screenshot 1280x800: `store-assets/edge/screenshot-1280x800.png`
 - Small promotional tile 440x280: `store-assets/edge/small-promo-440x280.png`
 - Large promotional tile 1400x560: `store-assets/edge/large-promo-1400x560.png`
 

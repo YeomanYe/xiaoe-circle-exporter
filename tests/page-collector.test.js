@@ -119,3 +119,68 @@ test("collects paginated comments, replies and media without hidden identity fie
     globalThis.document = originalDocument;
   }
 });
+
+test("collects an explicit detail URL while the current page is a feed list", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalLocation = globalThis.location;
+  const originalDocument = globalThis.document;
+  const requestedUrls = [];
+
+  globalThis.location = new URL("https://quanzi.xiaoe-tech.com/community-demo");
+  globalThis.document = { title: "列表页 - 测试社群" };
+  globalThis.fetch = async (input, init) => {
+    assert.equal(init?.credentials, "include");
+    const url = new URL(input);
+    requestedUrls.push(url);
+
+    if (url.pathname.endsWith("/h5_feeds_detail")) {
+      return jsonResponse({
+        feedsDetail: {
+          id: "feed-2",
+          community_title: "测试社群",
+          title: "列表页导出帖子",
+          nick_name: "作者",
+          created_at: "2026-08-12 11:00:00",
+          tags: [],
+          content: { text: "正文" },
+          file_json: [],
+        },
+      });
+    }
+    if (url.pathname.endsWith("/get_comment_praise_list")) {
+      return jsonResponse({
+        comment_list: { total_count: 0, list: [] },
+      });
+    }
+    throw new Error(`Unexpected URL: ${url}`);
+  };
+
+  try {
+    const result = await collectPostFromPage({
+      url: "https://quanzi.xiaoe-tech.com/community-demo/feed_detail?feeds_id=feed-2&app_id=app-2",
+    });
+
+    assert.equal(
+      result.sourceUrl,
+      "https://quanzi.xiaoe-tech.com/community-demo/feed_detail?feeds_id=feed-2&app_id=app-2",
+    );
+    assert.equal(result.post.title, "列表页导出帖子");
+    assert.equal(result.comments.length, 0);
+
+    const detailRequest = requestedUrls.find((url) => url.pathname.endsWith("/h5_feeds_detail"));
+    assert.equal(detailRequest.searchParams.get("community_id"), "community-demo");
+    assert.equal(detailRequest.searchParams.get("feeds_id"), "feed-2");
+    assert.equal(detailRequest.searchParams.get("app_id"), "app-2");
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.location = originalLocation;
+    globalThis.document = originalDocument;
+  }
+});
+
+function jsonResponse(data) {
+  return new Response(JSON.stringify({ code: 0, msg: "success", data }), {
+    status: 200,
+    headers: { "content-type": "application/json" },
+  });
+}

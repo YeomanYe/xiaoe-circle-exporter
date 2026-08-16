@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=1280, initial-scale=1" />
+    <title>小鹅通助手 Edge Screenshot</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 1280px;
+        height: 800px;
+        margin: 0;
+        overflow: hidden;
+      }
+
+      body {
+        color: #172033;
+        background: #f5f8fc;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", "PingFang SC", sans-serif;
+      }
+
+      .browser {
+        width: 1280px;
+        height: 800px;
+        background: #f5f8fc;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        height: 68px;
+        padding: 0 30px;
+        border-bottom: 1px solid #dfe7f2;
+        background: #ffffff;
+      }
+
+      .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #cad4e5;
+      }
+
+      .address {
+        flex: 1;
+        height: 34px;
+        margin-left: 12px;
+        padding: 0 18px;
+        border-radius: 999px;
+        color: #6a7588;
+        background: #eef3fa;
+        font-size: 14px;
+        line-height: 34px;
+      }
+
+      .extension-icon {
+        display: grid;
+        width: 38px;
+        height: 38px;
+        place-items: center;
+        border-radius: 13px;
+        color: #ffffff;
+        background: linear-gradient(145deg, #3478f6, #6658e8);
+        font-size: 19px;
+        font-weight: 900;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 236px 1fr 346px;
+        height: 732px;
+      }
+
+      .sidebar {
+        padding: 34px 24px;
+        border-right: 1px solid #dfe7f2;
+        background: #ffffff;
+      }
+
+      .workspace-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 28px;
+      }
+
+      .workspace-mark {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        background: linear-gradient(145deg, #3478f6, #18a66a);
+      }
+
+      .workspace-title strong {
+        display: block;
+        font-size: 20px;
+      }
+
+      .workspace-title span {
+        display: block;
+        margin-top: 3px;
+        color: #748096;
+        font-size: 12px;
+      }
+
+      .nav {
+        height: 42px;
+        margin-top: 11px;
+        padding: 0 14px;
+        border-radius: 13px;
+        color: #536072;
+        background: #f4f7fb;
+        font-size: 15px;
+        font-weight: 800;
+        line-height: 42px;
+      }
+
+      .nav.active {
+        color: #2267dc;
+        background: #eaf2ff;
+      }
+
+      .main {
+        padding: 34px 34px;
+      }
+
+      .headline {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+
+      .headline h1 {
+        margin: 0;
+        font-size: 30px;
+        line-height: 1.1;
+        letter-spacing: 0;
+      }
+
+      .headline p {
+        margin: 7px 0 0;
+        color: #748096;
+        font-size: 15px;
+      }
+
+      .badge {
+        height: 36px;
+        padding: 0 15px;
+        border-radius: 999px;
+        color: #0f7b55;
+        background: #eaf8f1;
+        font-size: 14px;
+        font-weight: 900;
+        line-height: 36px;
+      }
+
+      .feed-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .feed-card {
+        position: relative;
+        min-height: 236px;
+        padding: 24px;
+        border: 1px solid #dfe7f2;
+        border-radius: 22px;
+        background: #ffffff;
+        box-shadow: 0 16px 34px rgba(23, 32, 51, 0.07);
+      }
+
+      .feed-card.featured {
+        min-height: 318px;
+        grid-column: span 2;
+      }
+
+      .author {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: linear-gradient(145deg, #3478f6, #6658e8);
+      }
+
+      .author strong {
+        display: block;
+        font-size: 18px;
+      }
+
+      .author span {
+        display: block;
+        margin-top: 3px;
+        color: #748096;
+        font-size: 12px;
+      }
+
+      .export {
+        position: absolute;
+        top: 24px;
+        right: 24px;
+        height: 36px;
+        padding: 0 17px;
+        border: 1px solid #3478f6;
+        border-radius: 999px;
+        color: #3478f6;
+        background: #ffffff;
+        font-size: 14px;
+        font-weight: 900;
+        line-height: 34px;
+      }
+
+      .featured .export {
+        color: #ffffff;
+        background: #3478f6;
+      }
+
+      .text {
+        margin: 24px 0 0;
+        width: 574px;
+        color: #263044;
+        font-size: 20px;
+        font-weight: 700;
+        line-height: 1.62;
+      }
+
+      .compact-text {
+        margin-top: 22px;
+        color: #263044;
+        font-size: 17px;
+        font-weight: 700;
+        line-height: 1.5;
+      }
+
+      .chips {
+        display: flex;
+        gap: 10px;
+        margin-top: 22px;
+      }
+
+      .chip {
+        height: 34px;
+        padding: 0 13px;
+        border-radius: 10px;
+        color: #2267dc;
+        background: #eaf2ff;
+        font-size: 13px;
+        font-weight: 900;
+        line-height: 34px;
+      }
+
+      .line {
+        height: 9px;
+        margin-top: 12px;
+        border-radius: 999px;
+        background: #dfe7f2;
+      }
+
+      .line.short {
+        width: 72%;
+      }
+
+      .panel {
+        padding: 34px 24px;
+        border-left: 1px solid #dfe7f2;
+        background: linear-gradient(180deg, #fbfdff 0%, #edf8f3 100%);
+      }
+
+      .extension-card,
+      .archive-card {
+        border: 1px solid #dfe7f2;
+        border-radius: 22px;
+        background: #ffffff;
+        box-shadow: 0 22px 56px rgba(23, 32, 51, 0.12);
+      }
+
+      .extension-card {
+        padding: 22px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .brand img {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+      }
+
+      .brand h2 {
+        margin: 0;
+        font-size: 18px;
+        letter-spacing: 0;
+      }
+
+      .brand p {
+        margin: 3px 0 0;
+        color: #748096;
+        font-size: 12px;
+      }
+
+      .state {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-top: 18px;
+        padding: 14px;
+        border-radius: 14px;
+        color: #0f7b55;
+        background: #eaf8f1;
+        font-size: 14px;
+        font-weight: 900;
+      }
+
+      .state::before {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #18a66a;
+        content: "";
+      }
+
+      .button {
+        height: 44px;
+        margin-top: 14px;
+        border-radius: 12px;
+        color: #ffffff;
+        background: #3478f6;
+        font-size: 15px;
+        font-weight: 900;
+        line-height: 44px;
+        text-align: center;
+      }
+
+      .local {
+        margin-top: 16px;
+        padding-top: 15px;
+        border-top: 1px solid #e4ebf3;
+        color: #748096;
+        font-size: 12px;
+        line-height: 1.7;
+        text-align: center;
+      }
+
+      .archive-card {
+        margin-top: 24px;
+        padding: 20px;
+      }
+
+      .archive-card h3 {
+        margin: 0 0 14px;
+        font-size: 18px;
+        letter-spacing: 0;
+      }
+
+      .export-step {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 48px;
+        margin-top: 10px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        background: #f4f7fb;
+      }
+
+      .step-index {
+        display: grid;
+        width: 26px;
+        height: 26px;
+        place-items: center;
+        border-radius: 9px;
+        color: #ffffff;
+        background: #3478f6;
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .export-step strong {
+        display: block;
+        font-size: 13px;
+      }
+
+      .export-step span {
+        display: block;
+        margin-top: 2px;
+        color: #748096;
+        font-size: 11px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="browser">
+      <header class="topbar">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <div class="address">https://quanzi.xiaoe-tech.com/community/feed_list</div>
+        <div class="extension-icon">鹅</div>
+      </header>
+
+      <section class="layout">
+        <aside class="sidebar">
+          <div class="workspace-title">
+            <span class="workspace-mark"></span>
+            <div>
+              <strong>鹅圈子</strong>
+              <span>课程社群</span>
+            </div>
+          </div>
+          <div class="nav active">最新帖子</div>
+          <div class="nav">精华讨论</div>
+          <div class="nav">附件资料</div>
+          <div class="nav">评论回复</div>
+        </aside>
+
+        <section class="main">
+          <div class="headline">
+            <div>
+              <h1>在帖子列表直接打包归档</h1>
+              <p>示例数据：展示扩展按钮注入后的使用方式。</p>
+            </div>
+            <span class="badge">本地生成 ZIP</span>
+          </div>
+
+          <div class="feed-grid">
+            <article class="feed-card featured">
+              <div class="author">
+                <span class="avatar"></span>
+                <div>
+                  <strong>课程助教</strong>
+                  <span>含附件、图片和 128 条评论</span>
+                </div>
+              </div>
+              <div class="export">打包下载</div>
+              <p class="text">
+                直播复盘、资料附件、学员提问和回复评论都在这一条帖子里，点击按钮即可保存完整离线包。
+              </p>
+              <div class="chips">
+                <span class="chip">正文</span>
+                <span class="chip">附件</span>
+                <span class="chip">一级评论</span>
+                <span class="chip">回复评论</span>
+                <span class="chip">评论媒体</span>
+              </div>
+            </article>
+
+            <article class="feed-card">
+              <div class="author">
+                <span class="avatar"></span>
+                <div>
+                  <strong>资料补充帖</strong>
+                  <span>PDF / 图片素材</span>
+                </div>
+              </div>
+              <div class="export">打包下载</div>
+              <p class="compact-text">后续查资料时不需要再翻页面。</p>
+              <div class="line"></div>
+              <div class="line short"></div>
+            </article>
+
+            <article class="feed-card">
+              <div class="author">
+                <span class="avatar"></span>
+                <div>
+                  <strong>问答整理帖</strong>
+                  <span>评论区包含补充案例</span>
+                </div>
+              </div>
+              <div class="export">打包下载</div>
+              <p class="compact-text">评论和回复会按树状结构保留。</p>
+              <div class="line"></div>
+              <div class="line short"></div>
+            </article>
+          </div>
+        </section>
+
+        <aside class="panel">
+          <section class="extension-card">
+            <div class="brand">
+              <img src="../../static/icons/icon-enabled-128.png" alt="" />
+              <div>
+                <h2>小鹅通助手</h2>
+                <p>正文、附件、完整评论一次下载</p>
+              </div>
+            </div>
+            <div class="state">已识别帖子列表页</div>
+            <div class="button">选择帖子打包</div>
+            <div class="local">数据在浏览器本机处理，不上传到开发者服务器。</div>
+          </section>
+
+          <section class="archive-card">
+            <h3>归档包内容</h3>
+            <div class="export-step">
+              <span class="step-index">1</span>
+              <div><strong>离线阅读页</strong><span>index.html</span></div>
+            </div>
+            <div class="export-step">
+              <span class="step-index">2</span>
+              <div><strong>Markdown 和 JSON</strong><span>帖子.md / post.json</span></div>
+            </div>
+            <div class="export-step">
+              <span class="step-index">3</span>
+              <div><strong>附件与评论媒体</strong><span>files/ 和 media/</span></div>
+            </div>
+          </section>
+        </aside>
+      </section>
+    </main>
+  </body>
+</html>

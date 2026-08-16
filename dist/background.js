@@ -1,10 +1,13 @@
 (() => {
   // src/page-collector.js
-  async function collectPostFromPage() {
+  async function collectPostFromPage(options = {}) {
     const API_BASE = "/xe.community.community_service/small_community";
     const PAGE_SIZE = 10;
     const MAX_PAGES = 500;
-    const currentUrl = new URL(location.href);
+    const currentUrl = new URL(options.url || globalThis.location.href);
+    const requestOrigin = options.origin || currentUrl.origin;
+    const requestFetch = options.fetch || globalThis.fetch;
+    const documentTitle = options.documentTitle ?? globalThis.document?.title ?? "";
     if (currentUrl.pathname.includes("/sign_in")) {
       throw new Error("\u767B\u5F55\u72B6\u6001\u5DF2\u5931\u6548\uFF0C\u8BF7\u5148\u91CD\u65B0\u767B\u5F55\u9E45\u5708\u5B50\u3002");
     }
@@ -16,7 +19,7 @@
       throw new Error("\u5F53\u524D\u4E0D\u662F\u6709\u6548\u7684\u9E45\u5708\u5B50\u5E16\u5B50\u8BE6\u60C5\u9875\u3002");
     }
     async function requestJson(endpoint, params) {
-      const url = new URL(`${API_BASE}/${endpoint}`, location.origin);
+      const url = new URL(`${API_BASE}/${endpoint}`, requestOrigin);
       for (const [key, value] of Object.entries(params)) {
         if (Array.isArray(value)) {
           for (const item of value) url.searchParams.append(`${key}[]`, item);
@@ -24,7 +27,7 @@
           url.searchParams.set(key, String(value));
         }
       }
-      const response = await fetch(url, { credentials: "include" });
+      const response = await requestFetch(url, { credentials: "include" });
       if (!response.ok) {
         throw new Error(`\u8BF7\u6C42\u5931\u8D25\uFF1A${response.status} ${endpoint}`);
       }
@@ -193,7 +196,7 @@
     const comments = topLevelComments.map((comment) => normalizeComment(comment));
     const stripHtml = (html) => String(html || "").replace(/<br\s*\/?\s*>/gi, "\n").replace(/<\/p>/gi, "\n").replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").trim();
     const postText = feed.content?.text || feed.mix_content?.text || stripHtml(feed.org_content) || "";
-    const canonicalUrl = new URL(`/${communityId}/feed_detail`, location.origin);
+    const canonicalUrl = new URL(`/${communityId}/feed_detail`, currentUrl.origin);
     canonicalUrl.searchParams.set("feeds_id", feedsId);
     canonicalUrl.searchParams.set("app_id", appId);
     return {
@@ -202,7 +205,7 @@
       sourceUrl: canonicalUrl.href,
       community: {
         id: communityId,
-        title: feed.community_title || document.title.split(" - ").at(-1) || "\u9E45\u5708\u5B50"
+        title: feed.community_title || documentTitle.split(" - ").at(-1) || "\u9E45\u5708\u5B50"
       },
       post: {
         id: String(feed.id),

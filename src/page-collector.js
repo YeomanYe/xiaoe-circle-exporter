@@ -1,10 +1,14 @@
-export async function collectPostFromPage() {
+export async function collectPostFromPage(options = {}) {
   const API_BASE =
     "/xe.community.community_service/small_community";
   const PAGE_SIZE = 10;
   const MAX_PAGES = 500;
 
-  const currentUrl = new URL(location.href);
+  const currentUrl = new URL(options.url || globalThis.location.href);
+  const requestOrigin = options.origin || currentUrl.origin;
+  const requestFetch = options.fetch || globalThis.fetch;
+  const documentTitle = options.documentTitle ?? globalThis.document?.title ?? "";
+
   if (currentUrl.pathname.includes("/sign_in")) {
     throw new Error("登录状态已失效，请先重新登录鹅圈子。");
   }
@@ -19,7 +23,7 @@ export async function collectPostFromPage() {
   }
 
   async function requestJson(endpoint, params) {
-    const url = new URL(`${API_BASE}/${endpoint}`, location.origin);
+    const url = new URL(`${API_BASE}/${endpoint}`, requestOrigin);
     for (const [key, value] of Object.entries(params)) {
       if (Array.isArray(value)) {
         for (const item of value) url.searchParams.append(`${key}[]`, item);
@@ -28,7 +32,7 @@ export async function collectPostFromPage() {
       }
     }
 
-    const response = await fetch(url, { credentials: "include" });
+    const response = await requestFetch(url, { credentials: "include" });
     if (!response.ok) {
       throw new Error(`请求失败：${response.status} ${endpoint}`);
     }
@@ -243,7 +247,7 @@ export async function collectPostFromPage() {
       .trim();
   const postText =
     feed.content?.text || feed.mix_content?.text || stripHtml(feed.org_content) || "";
-  const canonicalUrl = new URL(`/${communityId}/feed_detail`, location.origin);
+  const canonicalUrl = new URL(`/${communityId}/feed_detail`, currentUrl.origin);
   canonicalUrl.searchParams.set("feeds_id", feedsId);
   canonicalUrl.searchParams.set("app_id", appId);
 
@@ -253,7 +257,7 @@ export async function collectPostFromPage() {
     sourceUrl: canonicalUrl.href,
     community: {
       id: communityId,
-      title: feed.community_title || document.title.split(" - ").at(-1) || "鹅圈子",
+      title: feed.community_title || documentTitle.split(" - ").at(-1) || "鹅圈子",
     },
     post: {
       id: String(feed.id),
